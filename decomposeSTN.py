@@ -13,8 +13,8 @@ import librosa
 def decSTN(x,Fs,nWin1,nWin2):
     y_len = len(x)
     
-    nHop1 = nWin1*7//8
-    nHop2 = nWin2*7//8
+    nHop1 = nWin1//8
+    nHop2 = nWin2//8
     win1 = sig.windows.hann(nWin1,sym=False)
     win2 = sig.windows.hann(nWin2,sym=False)
     filter_length_t = 200e-3 # ms
