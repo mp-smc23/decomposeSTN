@@ -13,33 +13,33 @@ import librosa
 def decSTN(x,Fs,nWin1,nWin2):
     y_len = len(x)
     
-    nHop1 = nWin1//8
-    nHop2 = nWin2//8
-    win1 = sig.windows.hann(nWin1,sym=False)
-    win2 = sig.windows.hann(nWin2,sym=False)
+    hopSize1 = nWin1//8
+    hopSize2 = nWin2//8
+    nHop1 = nWin1*7//8
+    nHop2 = nWin2*7//8
     filter_length_t = 200e-3 # ms
     filter_length_f = 500 # Hz
 
     # Round 1
-    X1 = librosa.stft(x, n_fft=nWin1, hop_length=nHop1, window=win1)
+    X1 = librosa.stft(x, n_fft=nWin1, hop_length=hopSize1)
     
     nH_1 = int(np.round(filter_length_t * Fs // (nWin1-nHop1)))
     nV_1 = int(np.round(filter_length_f * nWin1 // Fs))
     S1,T1,N1 = fuzzySTN(X1,0.7,0.8,nH_1,nV_1)
 
-    xs = librosa.istft(S1*X1, n_fft=nWin1, hop_length=nHop1, window=win1, length=y_len)
-    xres = librosa.istft((T1+N1) * X1, n_fft=nWin1, hop_length=nHop1, window=win1, length=y_len)
+    xs = librosa.istft(S1*X1, n_fft=nWin1, hop_length=hopSize1, length=y_len)
+    xres = librosa.istft((T1+N1) * X1, n_fft=nWin1, hop_length=hopSize1, length=y_len)
     
     # Round 2
     
-    X2 = librosa.stft(xres, n_fft=nWin2, hop_length=nHop2, window=win2)
+    X2 = librosa.stft(xres, n_fft=nWin2, hop_length=hopSize2)
     nH_2 = int(np.round(filter_length_t * Fs // (nWin2-nHop2)))
     nV_2 = int(np.round(filter_length_f * nWin2 // Fs))
     
     S2,T2,N2 = fuzzySTN(X2,0.75,0.85,nH_2,nV_2)
     
-    xt = librosa.istft(T2 * X2, n_fft=nWin2, hop_length=nHop2, window=win2, length=y_len)
-    xn = librosa.istft((S2+N2) * X2, n_fft=nWin2, hop_length=nHop2, window=win2, length=y_len)
+    xt = librosa.istft(T2 * X2, n_fft=nWin2, hop_length=hopSize2, length=y_len)
+    xn = librosa.istft((S2+N2) * X2, n_fft=nWin2, hop_length=hopSize2, length=y_len)
 
     return xs,xt,xn
 
